@@ -4,7 +4,7 @@ pub mod natural;
 pub mod slate;
 
 pub use crate::slate::Slate;
-pub use crate::natural::N;
+//pub use crate::natural::N;
 
 use thiserror::Error;
 
