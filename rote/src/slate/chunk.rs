@@ -1,15 +1,26 @@
 use std::marker::PhantomData;
 use super::Policy;
 
-// TODO: deallocate on Drop
-
 pub struct Chunk<'slate, TPolicy>
 where
     TPolicy: 'slate + Policy,
 {
     pub policy: PhantomData<TPolicy>,
     pub next: Option<&'slate Chunk<'slate, TPolicy>>,
-    pub blocks: &'slate [TPolicy::Block],
+    pub blocks: &'slate mut [TPolicy::Block],
+}
+
+impl<'slate, TPolicy> Drop for Chunk<'slate, TPolicy>
+where
+    TPolicy: 'slate + Policy,
+{
+    fn drop(&mut self) {
+        let layout = Self::block_layout();
+        let blocks_ptr = &mut self.blocks[0] as *mut TPolicy::Block as *mut u8;
+        unsafe {
+            std::alloc::dealloc(blocks_ptr, layout);
+        }
+    }
 }
 
 impl<'slate, TPolicy> Chunk<'slate, TPolicy>
@@ -17,11 +28,10 @@ where
     TPolicy: 'slate + Policy,
 {
     pub fn new() -> Self {
-        let blocks: &'slate [TPolicy::Block];
+        let blocks: &'slate mut [TPolicy::Block];
 
         // Use layout of the block for size and alignment
-        let layout = std::alloc::Layout::array::<TPolicy::Block>(TPolicy::BLOCKS_PER_CHUNK).unwrap();
-        debug_assert!(layout.size() > 0);
+        let layout = Self::block_layout();
 
         unsafe {
             // Allocate
@@ -33,7 +43,7 @@ where
             }
 
             // Turn into a slice
-            blocks = std::slice::from_raw_parts(blocks_ptr, TPolicy::BLOCKS_PER_CHUNK); 
+            blocks = std::slice::from_raw_parts_mut(blocks_ptr, TPolicy::BLOCKS_PER_CHUNK); 
         }
 
         Self {
@@ -41,6 +51,10 @@ where
             blocks: blocks,
             next: None,
         }
+    }
+
+    fn block_layout() -> std::alloc::Layout {
+        std::alloc::Layout::array::<TPolicy::Block>(TPolicy::BLOCKS_PER_CHUNK).unwrap()
     }
 }
 
@@ -58,21 +72,21 @@ mod test {
         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         const BLOCKS_PER_CHUNK: usize = 1;
         
-        type Block = Block128<[u64; 2]>;
+        type Block = Block128;
     }
 
     impl Policy for Policy256 {
         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         const BLOCKS_PER_CHUNK: usize = 1;
         
-        type Block = Block256<[u64; 2]>;
+        type Block = Block256;
     }
 
     impl Policy for Policy512 {
         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         const BLOCKS_PER_CHUNK: usize = 1;
         
-        type Block = Block512<[u64; 2]>;
+        type Block = Block512;
     }
 
     #[test]
