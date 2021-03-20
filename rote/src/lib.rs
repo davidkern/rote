@@ -10,8 +10,13 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("unkown error")]
+    #[error("unknown error")]
     Unknown,
+
+    #[error("allocation would exceed chunk limit of {limit:?} chunks")]
+    ChunkLimit {
+        limit: usize,
+    },
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

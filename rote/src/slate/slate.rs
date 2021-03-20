@@ -2,18 +2,21 @@
 //! 
 //! Analogous to the "slates" historically used by school-children to practice arithmetic.
 
-pub struct Slate {
+use std::marker::PhantomData;
+use super::Chunk;
+use super::Policy;
+
+
+pub struct Slate<'slate, TPolicy: Policy> {
+    _policy: PhantomData<TPolicy>,
+    _chunk: Chunk<'slate, TPolicy>,
 }
 
-impl Slate {
-    /// Construct a new `Slate`
-    pub fn new() -> Self {
-        Self {
-        }
-    }
-
-    /// Erases all Symbol<T>
-    pub fn erase(&mut self) {
-    }
+impl<'slate, TPolicy: Policy> Slate<'slate, TPolicy> {
+    // /// Construct a new `Slate`
+    // pub fn new() -> Self {
+    //     Self {
+    //         chunk: ,
+    //     }
+    // }
 }
-
