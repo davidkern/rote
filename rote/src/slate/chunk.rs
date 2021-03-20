@@ -6,7 +6,7 @@ where
     TPolicy: 'slate + Policy,
 {
     pub policy: PhantomData<TPolicy>,
-    pub next: Option<&'slate Chunk<'slate, TPolicy>>,
+    pub next: Option<Box<Chunk<'slate, TPolicy>>>,
     pub blocks: &'slate mut [TPolicy::Block],
 }
 
