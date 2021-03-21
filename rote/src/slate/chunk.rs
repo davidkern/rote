@@ -1,112 +1,113 @@
-use std::marker::PhantomData;
-use super::Policy;
+// use std::marker::PhantomData;
+// use super::Policy;
 
-pub struct Chunk<'slate, TPolicy>
-where
-    TPolicy: 'slate + Policy,
-{
-    pub policy: PhantomData<TPolicy>,
-    pub next: Option<Box<Chunk<'slate, TPolicy>>>,
-    pub blocks: &'slate mut [TPolicy::Block],
-}
+// /// Allocate blocks on the heap, a chunk of blocks at a time
+// pub struct Chunk<TPolicy>
+// where
+//     TPolicy: Policy
+// {
+//     _policy: PhantomData<TPolicy>,
+//     inner: Box<ChunkInner<TPolicy>>,
+// }
 
-impl<'slate, TPolicy> Drop for Chunk<'slate, TPolicy>
-where
-    TPolicy: 'slate + Policy,
-{
-    fn drop(&mut self) {
-        let layout = Self::block_layout();
-        let blocks_ptr = &mut self.blocks[0] as *mut TPolicy::Block as *mut u8;
-        unsafe {
-            std::alloc::dealloc(blocks_ptr, layout);
-        }
-    }
-}
+// impl<TPolicy> Chunk<TPolicy>
+// where
+//     TPolicy: Policy,
+// {
+//     /// Create a new chunk on the heap
+//     pub fn new_boxed() -> Self {
+//         Self {
+//             _policy: PhantomData,
+//             inner: ChunkInner::boxed_new(None),
+//         }
+//     }
 
-impl<'slate, TPolicy> Chunk<'slate, TPolicy>
-where
-    TPolicy: 'slate + Policy,
-{
-    pub fn new() -> Self {
-        let blocks: &'slate mut [TPolicy::Block];
+//     /// Increases the capacity by one heap-allocated chunk
+//     pub fn grow(&mut self) {
+//         // Create a new chunk
+//         let mut new_inner = ChunkInner::boxed_new(None);
 
-        // Use layout of the block for size and alignment
-        let layout = Self::block_layout();
+//         // Replace the old chunk with the new chunk
+//         let old_inner = std::mem::replace(&mut self.inner, new_inner);
 
-        unsafe {
-            // Allocate
-            let blocks_ptr = std::alloc::alloc(layout) as *mut TPolicy::Block;
+//         // Link the old chunk to the new chunk
+//         self.inner.next = Some(old_inner);
+//     }
 
-            // Initialize
-            for i in 0..TPolicy::BLOCKS_PER_CHUNK {
-                blocks_ptr.offset(i as isize).write(TPolicy::Block::default());
-            }
+//     // /// The number of blocks in this chunk
+//     // pub fn block_count(&self) -> usize {
+//     //     self.inner.as_ref().blocks.as_ref().len()
+//     // }
+// }
 
-            // Turn into a slice
-            blocks = std::slice::from_raw_parts_mut(blocks_ptr, TPolicy::BLOCKS_PER_CHUNK); 
-        }
+// struct ChunkInner<TPolicy>
+// where
+//     TPolicy: Policy
+// {
+//     pub next: Option<Box<ChunkInner<TPolicy>>>,
+//     pub blocks: TPolicy::BlockStorage,
+// }
 
-        Self {
-            policy: PhantomData,
-            blocks: blocks,
-            next: None,
-        }
-    }
+// impl<TPolicy> ChunkInner<TPolicy>
+// where
+//     TPolicy: Policy
+// {
+//     fn boxed_new(next: Option<Box<Self>>) -> Box<Self> {
+//         Box::new (
+//             ChunkInner {
+//                 next,
+//                 blocks: TPolicy::BlockStorage::default(),
+//             }
+//         )
+//     }
+// }
 
-    fn block_layout() -> std::alloc::Layout {
-        std::alloc::Layout::array::<TPolicy::Block>(TPolicy::BLOCKS_PER_CHUNK).unwrap()
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     use crate::slate::ChunkLimit;
+//     use crate::slate::block::{Block128, Block256, Block512};
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::slate::ChunkLimit;
-    use crate::slate::block::{Block128, Block256, Block512};
+//     struct Policy128;
+//     struct Policy256;
+//     struct Policy512;
 
-    struct Policy128;
-    struct Policy256;
-    struct Policy512;
-
-    impl Policy for Policy128 {
-        const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
-        const BLOCKS_PER_CHUNK: usize = 1;
+//     impl Policy for Policy128 {
+//         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         
-        type Block = Block128;
-    }
+//         type Block = Block128;
+//         type BlockStorage = [Self::Block; 1];
+//     }
 
-    impl Policy for Policy256 {
-        const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
-        const BLOCKS_PER_CHUNK: usize = 1;
+//     impl Policy for Policy256 {
+//         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         
-        type Block = Block256;
-    }
+//         type Block = Block256;
+//         type BlockStorage = [Self::Block; 1];
+//     }
 
-    impl Policy for Policy512 {
-        const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
-        const BLOCKS_PER_CHUNK: usize = 1;
+//     impl Policy for Policy512 {
+//         const CHUNK_LIMIT: ChunkLimit = ChunkLimit::NoLimit;
         
-        type Block = Block512;
-    }
+//         type Block = Block512;
+//         type BlockStorage = [Self::Block; 1];
+//     }
 
-    #[test]
-    fn size_and_alignment() {
-        let chunk128: Chunk<'_, Policy128> = Chunk::new();
+//     #[test]
+//     fn size_and_alignment() {
+//         // let chunk128: Chunk<Policy128> = Chunk::new();
 
-        assert_eq!(Policy128::BLOCKS_PER_CHUNK, chunk128.blocks.len());
-        assert_eq!(16, std::mem::align_of_val(&chunk128.blocks[0]));
-        assert_eq!(16, std::mem::size_of_val(&chunk128.blocks[0]));
+//         // assert_eq!(16, std::mem::align_of_val(&chunk128[0]));
+//         // assert_eq!(16, std::mem::size_of_val(&chunk128[0]));
 
-        let chunk256: Chunk<'_, Policy256> = Chunk::new();
+//         // let chunk256: Chunk<Policy256> = Chunk::new();
 
-        assert_eq!(Policy256::BLOCKS_PER_CHUNK, chunk256.blocks.len());
-        assert_eq!(32, std::mem::align_of_val(&chunk256.blocks[0]));
-        assert_eq!(32, std::mem::size_of_val(&chunk256.blocks[0]));
+//         // assert_eq!(32, std::mem::align_of_val(&chunk256[0]));
+//         // assert_eq!(32, std::mem::size_of_val(&chunk256[0]));
 
-        let chunk512: Chunk<'_, Policy512> = Chunk::new();
+//         // let chunk512: Chunk<Policy512> = Chunk::new();
 
-        assert_eq!(Policy512::BLOCKS_PER_CHUNK, chunk512.blocks.len());
-        assert_eq!(64, std::mem::align_of_val(&chunk512.blocks[0]));
-        assert_eq!(64, std::mem::size_of_val(&chunk512.blocks[0]));
-    }
-}
+//         // assert_eq!(64, std::mem::align_of_val(&chunk512[0]));
+//         // assert_eq!(64, std::mem::size_of_val(&chunk512[0]));
+//     }
+// }

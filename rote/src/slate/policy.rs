@@ -14,9 +14,12 @@ pub trait Policy {
     /// allocations.
     const CHUNK_LIMIT: ChunkLimit;
 
-    /// The number of Blocks in each Chunk
-    const BLOCKS_PER_CHUNK: usize;
-
     /// The type of Block stored in the Chunk
-    type Block: Copy + Default;
+    type Block;
+
+    /// The type used for storage of Block in the Chunk
+    type BlockStorage:
+        AsRef<[Self::Block]>
+        + AsMut<[Self::Block]>
+        + Default;
 }
