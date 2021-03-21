@@ -1,3 +1,4 @@
+pub mod arena;
 pub mod block;
 pub mod chunk;
 pub mod policy;
