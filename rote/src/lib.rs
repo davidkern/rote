@@ -2,9 +2,7 @@
 
 pub mod natural;
 pub mod memory;
-pub mod slate;
 
-pub use crate::slate::Slate;
 //pub use crate::natural::N;
 
 use thiserror::Error;
@@ -14,9 +12,9 @@ pub enum Error {
     #[error("unknown error")]
     Unknown,
 
-    #[error("allocation would exceed chunk limit of {limit:?} chunks")]
-    ChunkLimit {
-        limit: usize,
+    #[error("allocation would exceed region maximmum of {max:?} chunks")]
+    RegionLimit {
+        max: usize,
     },
 }
 

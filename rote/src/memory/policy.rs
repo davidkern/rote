@@ -1,25 +1,21 @@
-/// Limits on allocating chunks
-pub enum ChunkLimit {
-    NoLimit,
-    Limit {
-        limit: usize,
-    },
+pub struct RegionPolicy {
+    /// Minimum number of concurrent Regions
+    min: usize,
+
+    /// Maximum number of concurrent Regions
+    max: usize,
+}
+
+impl Default for RegionPolicy {
+    fn default() -> Self {
+        RegionPolicy {
+            min: usize::MIN,
+            max: usize::MAX,
+        }
+    }
 }
 
 pub trait Policy {
-    /// Maximum number of chunks allowed to allocated from
-    /// the global allocator. ChunkLimit::Limit(1) will allocate one
-    /// chunk when the Slate is constructed and will perform no other
-    /// allocations. ChunkLimit::NoLimit will not limit the number of
-    /// allocations.
-    const CHUNK_LIMIT: ChunkLimit;
-
-    /// The type of Block stored in the Chunk
-    type Block;
-
-    /// The type used for storage of Block in the Chunk
-    type BlockStorage:
-        AsRef<[Self::Block]>
-        + AsMut<[Self::Block]>
-        + Default;
+    /// Region policy
+    const REGION: RegionPolicy;
 }
