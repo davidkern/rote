@@ -1,11 +1,14 @@
-//! A heap-based stack which owns its entries.
+//! A heap-based entry-owning stack for infrequent pushes.
+//! Entries are allocated on the heap individually when pushed
+//! and removed when popped. Infrequent larger entries will be
+//! more efficient in allocator usage than frequent smaller entries.
+//! 
 //! This is based on the code for std::collections::LinkedList,
-//! but implements a singly-linked list.
+//! but is implemented as a singly-linked list since only top
+//! of stack needs tracked and no iteration of entries is desired.
 
 use std::marker::PhantomData;
 use std::ptr::NonNull;
-
-use super::Policy;
 
 /// A heap-based stack which owns its entries
 pub struct HeapStack<T> {
@@ -92,5 +95,39 @@ impl<T> HeapStack<T> {
     #[inline]
     pub fn pop(&mut self) -> Option<T> {
         self.pop_entry().map(Entry::into_owned)
+    }
+
+    /// Returns the number of entries on the stack
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    /// Test push and pop, including pop while empty
+    #[test]
+    fn push_and_pop() {
+        let mut stack = HeapStack::new();
+
+        assert_eq!(0, stack.len());
+        
+        stack.push(10u64);
+        assert_eq!(1, stack.len());
+
+        stack.push(20u64);
+        assert_eq!(2, stack.len());
+
+        assert_eq!(Some(20u64), stack.pop());
+        assert_eq!(1, stack.len());
+
+        assert_eq!(Some(10u64), stack.pop());
+        assert_eq!(0, stack.len());
+
+        assert_eq!(None, stack.pop());
+        assert_eq!(0, stack.len());
     }
 }

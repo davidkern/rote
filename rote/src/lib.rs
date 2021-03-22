@@ -1,6 +1,7 @@
 //! Pure Rust implementation of exact arithmetic and algorithms for computer geometry applications.
 
 pub mod natural;
+pub mod memory;
 pub mod slate;
 
 pub use crate::slate::Slate;
