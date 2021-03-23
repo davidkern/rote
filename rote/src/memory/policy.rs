@@ -1,21 +1,17 @@
-pub struct RegionPolicy {
-    /// Minimum number of concurrent Regions
-    min: usize,
-
-    /// Maximum number of concurrent Regions
-    max: usize,
+pub trait MemoryPolicy {
+    const POLICY: Policy;
 }
 
-impl Default for RegionPolicy {
-    fn default() -> Self {
-        RegionPolicy {
-            min: usize::MIN,
-            max: usize::MAX,
+pub enum Policy {
+    Fixed { len: usize },
+    Dynamic,
+}
+
+impl Policy {
+    pub const fn initial(self) -> usize {
+        match self {
+            Self::Fixed { len } => len,
+            Self::Dynamic => 0,
         }
     }
-}
-
-pub trait Policy {
-    /// Region policy
-    const REGION: RegionPolicy;
 }
