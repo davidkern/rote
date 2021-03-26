@@ -1,23 +1,24 @@
-use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-use super::{HeapStack, MemoryPolicy, Policy, Region};
+use super::{HeapStack, Region};
 
-pub struct BumpAllocator<P: MemoryPolicy, T: Default> {
-    pub policy: PhantomData<*const P>,
+pub struct BumpAllocator<T: Default> {
     next: NonNull<T>,
     last: NonNull<T>,
     stack: HeapStack<Region<T>>,
 }
 
-impl<P: MemoryPolicy, T: Default> BumpAllocator<P, T> {
+impl<T: Default> BumpAllocator<T> {
     pub fn new() -> Self {
         BumpAllocator {
-            policy: PhantomData,
             next: NonNull::dangling(),
             last: NonNull::dangling(),
             stack: HeapStack::new(),
         }
+    }
+
+    pub fn alloc(&mut self) -> Region<T> {
+        unimplemented!();
     }
 }
 
@@ -27,13 +28,8 @@ mod test {
 
     #[test]
     pub fn allocate() {
-        struct FixedPolicy;
-        impl MemoryPolicy for FixedPolicy {
-            const POLICY: Policy = Policy::Fixed { len: 1 };
-        }
-
-        let mut bump: BumpAllocator<FixedPolicy, u64> = BumpAllocator::new();
-        // let first = bump.alloc();
-        // let second = bump.alloc();
+        let mut bump: BumpAllocator<u64> = BumpAllocator::new();
+        let first = bump.alloc();
+        let second = bump.alloc();
     }
 }
