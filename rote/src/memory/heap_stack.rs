@@ -104,6 +104,15 @@ impl<T> HeapStack<T> {
     }
 }
 
+
+impl<T> Drop for HeapStack<T> {
+    fn drop(&mut self) {
+        while self.len() > 0 {
+            self.pop();
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

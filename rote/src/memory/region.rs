@@ -1,7 +1,6 @@
 use std::marker::PhantomData;
 use std::alloc;
 use std::ptr;
-use crate::Result;
 
 pub struct Region<T: Default> {
     marker: PhantomData<[T]>,
@@ -10,17 +9,16 @@ pub struct Region<T: Default> {
 }
 
 impl<T: Default> Region<T> {
-    // TODO: should be a result, allocation is falible
-    pub fn with_capacity(len: usize) -> Result<Self> {
+    /// Construct a new Region.
+    /// panics if allocation fails
+    pub fn with_capacity(len: usize) -> Self {
         if len == 0 {
             // Zero-sized regions are not allocated
-            let region = Region {
+            Region {
                 marker: PhantomData,
                 start: ptr::null_mut(),
                 end: ptr::null_mut(),
-            };
-
-            Ok(region)
+            }
         } else {
             // Allocate non-zero-sized region
             let layout = alloc::Layout::array::<T>(len).unwrap();
@@ -35,7 +33,7 @@ impl<T: Default> Region<T> {
 
                 region.clear();
 
-                Ok(region)
+                region
             }    
         }
     }
@@ -50,6 +48,16 @@ impl<T: Default> Region<T> {
             }
         }
 
+    }
+
+    /// Gets start pointer
+    pub fn start(&mut self) -> *mut T {
+        self.start
+    }
+
+    /// Gets end pointer
+    pub fn end(&mut self) -> *mut T {
+        self.end
     }
 }
 
