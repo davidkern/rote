@@ -100,15 +100,15 @@ mod test {
 
     #[test]
     pub fn allocate_large() {
-        let bump: BumpAllocator<u64> = BumpAllocator::new(1_000_000);
+        let bump: BumpAllocator<u64> = BumpAllocator::new(100_000);
         assert_eq!(0, bump.item_count());
         assert_eq!(0, bump.region_count());
 
-        for _ in 0..10_000_000 {
+        for _ in 0..1_000_000 {
             bump.alloc();
         }
 
-        assert_eq!(10_000_000, bump.item_count());
+        assert_eq!(1_000_000, bump.item_count());
         assert_eq!(10, bump.region_count());
     }
 }

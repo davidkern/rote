@@ -1,9 +1,8 @@
 //! Pure Rust implementation of exact arithmetic and algorithms for computer geometry applications.
 
-pub mod natural;
+pub mod number;
 pub mod memory;
-
-//pub use crate::natural::N;
+pub mod simd;
 
 use thiserror::Error;
 
