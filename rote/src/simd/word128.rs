@@ -5,6 +5,20 @@ pub struct Word128 {
     data: u128,
 }
 
+impl Word128 {
+    pub fn overflowing_add(self, rhs: Word128) -> (Self, bool) {
+        let (data, carry) = self.data.overflowing_add(rhs.data);
+
+        (Self { data }, carry)
+    }
+
+    pub fn overflowing_sub(self, rhs: Word128) -> (Self, bool) {
+        let (data, carry) = self.data.overflowing_sub(rhs.data);
+
+        (Self { data }, carry)
+    }
+}
+
 impl<T> From<T> for Word128
 where T: Into<u128>
 {
