@@ -1,5 +1,6 @@
 //! Pure Rust implementation of exact arithmetic and algorithms for computer geometry applications.
 
+pub mod expression;
 pub mod natural;
 pub mod memory;
 
