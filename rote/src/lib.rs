@@ -4,6 +4,8 @@ pub mod expression;
 pub mod natural;
 pub mod memory;
 
+pub use rote_macros::rote;
+
 //pub use crate::natural::N;
 
 use thiserror::Error;
@@ -20,3 +22,14 @@ pub enum Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod test {
+    use crate::rote;
+
+    #[test]
+    fn expression() {
+        let x = 0;
+        let _expr = rote!(1 + x);        
+    }
+}
