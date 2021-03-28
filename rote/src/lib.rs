@@ -29,7 +29,10 @@ mod test {
 
     #[test]
     fn expression() {
-        let x = 0;
-        let _expr = rote!(1 + x);        
+        let _expr = rote!({
+            let x: A = a + b;
+            let b: A = a^2;
+            let d(y): A = 1;
+        });
     }
 }
